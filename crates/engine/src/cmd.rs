@@ -37,6 +37,7 @@ mod preset_files;
 pub mod previews;
 mod print;
 mod query;
+pub use query::ALL_METADATA_MAX_PHOTOS;
 pub mod recheck;
 pub mod reload;
 mod slideshow;

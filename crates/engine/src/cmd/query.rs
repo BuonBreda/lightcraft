@@ -71,6 +71,107 @@ fn photo_arg(s: &Session, p: &Value, c: &str) -> crate::Result<PhotoId> {
     }
 }
 
+/// The most photos one `photo.allMetadata` call compares: every one of them is read from disk.
+pub const ALL_METADATA_MAX_PHOTOS: usize = 100;
+
+/// `photo.allMetadata`'s `ids`: photo ids in the library, at least one and at most
+/// [`ALL_METADATA_MAX_PHOTOS`], each once (in the order given).
+fn all_metadata_ids(s: &Session, p: &Value) -> crate::Result<Vec<PhotoId>> {
+    const C: &str = "photo.allMetadata";
+    let list = p.get("ids").and_then(Value::as_array).ok_or_else(|| bad(C, "`ids` must be photo ids (whole numbers)"))?;
+    if list.len() > ALL_METADATA_MAX_PHOTOS {
+        return Err(bad(C, format!("compares at most {ALL_METADATA_MAX_PHOTOS} photos ({} given)", list.len())));
+    }
+    let mut ids: Vec<PhotoId> = Vec::with_capacity(list.len());
+    for v in list {
+        let id = v.as_u64().map(PhotoId).ok_or_else(|| bad(C, "`ids` must be photo ids (whole numbers)"))?;
+        if s.catalog.photo(id).is_none() {
+            return Err(bad(C, format!("no such photo {}", id.0)));
+        }
+        if !ids.contains(&id) {
+            ids.push(id);
+        }
+    }
+    if ids.is_empty() {
+        return Err(bad(C, "no photo"));
+    }
+    Ok(ids)
+}
+
+/// One photo's All Metadata rows read from its file: (EXIF / TIFF / GPS rows, XMP rows), or
+/// `None` for a generated demo photo, which has no file.
+fn photo_metadata_rows(s: &Session, id: PhotoId) -> crate::Result<Option<(Vec<Value>, Vec<Value>)>> {
+    let ph = s.catalog.photo(id).ok_or_else(|| bad("photo.allMetadata", format!("no such photo {}", id.0)))?;
+    let lightcraft_catalog::Source::File { path } = &ph.source else {
+        return Ok(None);
+    };
+    let bytes = match &s.media.file_bytes {
+        Some(r) => r(path),
+        None => std::fs::read(path).map_err(|e| format!("{path}: {e}")),
+    }
+    .map_err(|e| bad("photo.allMetadata", e))?;
+    let exif: Vec<Value> = lightcraft_meta::file_tag_rows(&bytes)
+        .into_iter()
+        .map(|r| json!({"group": r.group, "tag": r.tag, "name": r.name, "value": r.value}))
+        .collect();
+    // Keep sidecar precedence; reuse the loaded bytes for embedded XMP.
+    let packet = match crate::sidecar::find_sidecar(path, s.sidecar_naming(ph.id)) {
+        Some(sc) => std::fs::read_to_string(sc).ok(),
+        None => lightcraft_meta::embedded(&bytes).xmp,
+    };
+    let xmp: Vec<Value> = packet
+        .and_then(|x| lightcraft_meta::parse_xmp(&x).ok())
+        .map(|d| d.properties.into_iter().filter(|(k, _)| !k.starts_with("lc:")).map(|(k, v)| json!({"name": k, "value": v.join("; ")})).collect())
+        .unwrap_or_default();
+    Ok(Some((exif, xmp)))
+}
+
+/// The rows of several photos as one list, a row per field (`key` names the fields that tell
+/// rows apart), in the order the fields first appear. A field every photo has with the same
+/// value keeps it; one whose values differ, or that some photos lack, gets `mixed: true` and an
+/// empty value. One photo's rows come back as they are.
+fn shared_rows<'a>(photos: impl Iterator<Item = &'a [Value]> + Clone, key: &[&str]) -> Vec<Value> {
+    let n = photos.clone().count();
+    if n <= 1 {
+        return photos.flat_map(<[Value]>::to_vec).collect();
+    }
+    let key_of = |row: &Value| -> Vec<Value> { key.iter().map(|k| row.get(*k).cloned().unwrap_or(Value::Null)).collect() };
+    // per field: its first row and how many photos have it with that row's value
+    let mut fields: Vec<(Vec<Value>, Value, usize, bool)> = Vec::new();
+    let mut at: HashMap<String, usize> = HashMap::new();
+    for rows in photos {
+        // a field a file lists twice counts once for that photo
+        let mut seen: Vec<usize> = Vec::new();
+        for row in rows {
+            let k = key_of(row);
+            let i = *at.entry(Value::Array(k.clone()).to_string()).or_insert_with(|| {
+                fields.push((k, row.clone(), 0, false));
+                fields.len() - 1
+            });
+            if seen.contains(&i) {
+                continue;
+            }
+            seen.push(i);
+            let Some(f) = fields.get_mut(i) else { continue };
+            if f.1.get("value") == row.get("value") {
+                f.2 = f.2.saturating_add(1);
+            } else {
+                f.3 = true;
+            }
+        }
+    }
+    fields
+        .into_iter()
+        .map(|(_, mut row, same, differs)| {
+            if differs || same < n {
+                row["value"] = json!("");
+                row["mixed"] = json!(true);
+            }
+            row
+        })
+        .collect()
+}
+
 // Catalog queries also run in the 32-bit web build. A narrowing cast wraps
 // an out-of-range offset to zero, returning the first page instead of no photos.
 fn pagination_usize(value: u64) -> usize {
@@ -126,31 +227,22 @@ pub fn specs() -> Vec<CommandSpec> {
                 "clipboard": s.clipboard.is_some(),
             }))
         }),
-        cmd!(query "photo.allMetadata", "All Metadata", [], None, "{id?} → {exif: [{group, tag, name, value}], xmp: [{name, value}]} — every EXIF / TIFF / GPS tag of the file and its XMP properties", always, |s, p| {
-            let id = photo_arg(s, p, "photo.allMetadata")?;
-            let ph = s.catalog.photo(id).ok_or_else(|| super::bad("photo.allMetadata", "no such photo"))?.clone();
-            let lightcraft_catalog::Source::File { path } = &ph.source else {
-                return Ok(json!({"exif": [], "xmp": [], "note": "a generated demo photo has no file"}));
+        cmd!(query "photo.allMetadata", "All Metadata", [], None, "{id?, ids?} → {exif: [{group, tag, name, value, mixed?}], xmp: [{name, value, mixed?}], photos} — every EXIF / TIFF / GPS tag of the file and its XMP properties; with `ids` (up to 100 photos) the fields they share, and `mixed: true` (value empty) where their values differ or some of them lack the field", always, |s, p| {
+            let ids = match p.get("ids") {
+                None | Some(Value::Null) => vec![photo_arg(s, p, "photo.allMetadata")?],
+                Some(_) => all_metadata_ids(s, p)?,
             };
-            let bytes = match &s.media.file_bytes {
-                Some(r) => r(path),
-                None => std::fs::read(path).map_err(|e| format!("{path}: {e}")),
+            let mut each = Vec::with_capacity(ids.len());
+            for &id in &ids {
+                each.push(photo_metadata_rows(s, id)?);
             }
-            .map_err(|e| super::bad("photo.allMetadata", e))?;
-            let exif: Vec<Value> = lightcraft_meta::file_tag_rows(&bytes)
-                .into_iter()
-                .map(|r| json!({"group": r.group, "tag": r.tag, "name": r.name, "value": r.value}))
-                .collect();
-            // Keep sidecar precedence; reuse the loaded bytes for embedded XMP.
-            let packet = match crate::sidecar::find_sidecar(path, s.sidecar_naming(ph.id)) {
-                Some(sc) => std::fs::read_to_string(sc).ok(),
-                None => lightcraft_meta::embedded(&bytes).xmp,
-            };
-            let xmp: Vec<Value> = packet
-                .and_then(|x| lightcraft_meta::parse_xmp(&x).ok())
-                .map(|d| d.properties.into_iter().filter(|(k, _)| !k.starts_with("lc:")).map(|(k, v)| json!({"name": k, "value": v.join("; ")})).collect())
-                .unwrap_or_default();
-            Ok(json!({"exif": exif, "xmp": xmp}))
+            if each.iter().all(Option::is_none) {
+                return Ok(json!({"exif": [], "xmp": [], "photos": ids.len(), "note": "a generated demo photo has no file"}));
+            }
+            let each: Vec<(Vec<Value>, Vec<Value>)> = each.into_iter().map(Option::unwrap_or_default).collect();
+            let exif = shared_rows(each.iter().map(|(e, _)| e.as_slice()), &["group", "tag"]);
+            let xmp = shared_rows(each.iter().map(|(_, x)| x.as_slice()), &["name"]);
+            Ok(json!({"exif": exif, "xmp": xmp, "photos": ids.len()}))
         }),
         cmd!(query "albums.list", "List Albums", [], None, "{}", always, |s, _| {
             let all: Vec<Album> = s.catalog.albums().cloned().collect();
