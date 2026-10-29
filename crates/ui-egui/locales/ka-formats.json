@@ -307,6 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "სად გადავიტანოთ Lightroom-ის კატალოგი „{catalog}“?",
   "Merge into the open library “{library}” ({count} photo{})": "გაერთიანება ღია ბიბლიოთეკასთან „{library}“ (ფოტოები: {count}){:.0}",
   "{} selected photos": "მონიშნული ფოტოები ({})",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "ნაჩვენებია სამიზნე ფოტო: „ყველა მეტამონაცემი“ ადარებს მაქსიმუმ {} მონიშნულ ფოტოს",
+  "Showing the target photo: at most {} selected photos can be compared": "ნაჩვენებია სამიზნე ფოტო: შედარება შესაძლებელია მაქსიმუმ {} მონიშნული ფოტოსი",
   "Not compared, could not be read: {}": "არ შედარდა, ვერ წაიკითხა: {}"
 }

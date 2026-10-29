@@ -307,6 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Nhập danh mục Lightroom «{catalog}» vào đâu?",
   "Merge into the open library “{library}” ({count} photo{})": "Gộp vào thư viện đang mở «{library}» ({count} ảnh{:.0})",
   "{} selected photos": "{} ảnh đã chọn",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Đang hiển thị ảnh đích: Tất cả siêu dữ liệu chỉ so sánh tối đa {} ảnh đã chọn",
+  "Showing the target photo: at most {} selected photos can be compared": "Đang hiển thị ảnh đích: chỉ có thể so sánh tối đa {} ảnh đã chọn",
   "Not compared, could not be read: {}": "Không so sánh, không đọc được: {}"
 }

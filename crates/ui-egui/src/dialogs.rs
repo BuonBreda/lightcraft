@@ -687,7 +687,7 @@ fn all_metadata_body(ui: &mut egui::Ui, t: &Tokens, dlg: &mut Dialog) {
     ui.label(egui::RichText::new(title.as_str()).color(t.text_label));
     if let Some(limit) = rows["limit"].as_u64() {
         // the selection is bigger than one comparison reads: the target photo stands in
-        let note = crate::i18n::tr_format!("Showing the target photo: All Metadata compares at most {} selected photos", limit);
+        let note = crate::i18n::tr_format!("Showing the target photo: at most {} selected photos can be compared", limit);
         ui.add(egui::Label::new(egui::RichText::new(note).color(t.text_dim)).wrap());
     }
     if let Some(note) = unreadable_note(&rows["unreadable"]) {

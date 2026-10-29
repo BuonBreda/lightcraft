@@ -86,7 +86,7 @@ impl MetadataJob {
         progress(0, total);
         for (i, photo) in self.photos.iter().enumerate() {
             if cancel.load(Ordering::Relaxed) {
-                return Err(EngineError::Other("All Metadata: cancelled".into()));
+                return Err(EngineError::Cancelled("All Metadata cancelled".into()));
             }
             match &photo.file {
                 None => {

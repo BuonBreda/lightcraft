@@ -307,6 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Lightroom 目录“{catalog}”要导入到哪里？",
   "Merge into the open library “{library}” ({count} photo{})": "合并到当前打开的图库“{library}”（{count} 张照片）{:.0}",
   "{} selected photos": "选中的 {} 张照片",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "显示目标照片：所有元数据最多比较 {} 张选中的照片",
+  "Showing the target photo: at most {} selected photos can be compared": "显示目标照片：最多可比较 {} 张选中的照片",
   "Not compared, could not be read: {}": "无法读取，未参与比较：{}"
 }

@@ -938,7 +938,8 @@ fn all_metadata_of_several_photos_marks_mixed_fields() {
     let seen = std::sync::Mutex::new(Vec::new());
     job.run(&std::sync::atomic::AtomicBool::new(false), &|done, total| seen.lock().unwrap().push((done, total))).unwrap();
     assert_eq!(*seen.lock().unwrap(), vec![(0, 2), (1, 2), (2, 2)]);
-    assert!(job.run(&std::sync::atomic::AtomicBool::new(true), &|_, _| {}).is_err(), "a cancelled read gives no rows");
+    let cancelled = job.run(&std::sync::atomic::AtomicBool::new(true), &|_, _| {});
+    assert!(matches!(cancelled, Err(crate::EngineError::Cancelled(_))), "a cancelled read is a cancel, not a failure: {cancelled:?}");
 
     // a file that went away is left out and named; alone it is an error, as before
     std::fs::remove_file(&b).unwrap();
