@@ -307,5 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Où importer le catalogue Lightroom « {catalog} » ?",
   "Merge into the open library “{library}” ({count} photo{})": "Fusionner avec la bibliothèque ouverte « {library} » ({count} photo{})",
   "{} selected photos": "{} photos sélectionnées",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Affichage de la photo cible : Toutes les métadonnées compare au plus {} photos sélectionnées"
+  "Showing the target photo: All Metadata compares at most {} selected photos": "Affichage de la photo cible : Toutes les métadonnées compare au plus {} photos sélectionnées",
+  "Not compared, could not be read: {}": "Non comparées, illisibles : {}"
 }

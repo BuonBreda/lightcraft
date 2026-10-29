@@ -60,7 +60,7 @@ Beta-blocking gaps (B) total **~230–430 h**; with the stability and platform w
 
 ## Closed recently (kept for calibration)
 
-- 2026-10-29: gap 30, multi-select metadata in the UI: with several photos selected and Show Metadata For on Selected Photos, Photo ▸ All Metadata… compares up to 100 of them (`photo.allMetadata {ids}`), keeps the EXIF / XMP fields they share and says Mixed where their values differ or some lack the field; on Target Photo, or past 100 photos (the dialog says so), it shows the target photo as before.
+- 2026-10-29: gap 30, multi-select metadata in the UI: with several photos selected and Show Metadata For on Selected Photos, Photo ▸ All Metadata… compares up to 100 of them (`photo.allMetadata {ids}`), keeps the EXIF / XMP fields they share and says Mixed where their values differ or some lack the field, reading their files in the background (activity row `metadata`) and naming any it could not read; on Target Photo, or past 100 photos (the dialog says so), it shows the target photo as before.
 
 - 2026-10-22: saving XMP preserves foreign namespaces even when they use `lc:` or `xmp:` prefixes; importing them no longer interprets their properties as native settings or ratings. Parser, merge and save-command regressions cover the correction; no ranked gap or readiness estimate changes.
 

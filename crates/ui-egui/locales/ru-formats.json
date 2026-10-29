@@ -307,5 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Куда импортировать каталог Lightroom «{catalog}»?",
   "Merge into the open library “{library}” ({count} photo{})": "Объединить с открытой библиотекой «{library}» (фото: {count}){:.0}",
   "{} selected photos": "Выбрано фото: {}",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Показано целевое фото: «Все метаданные» сравнивает не больше {} выбранных фото"
+  "Showing the target photo: All Metadata compares at most {} selected photos": "Показано целевое фото: «Все метаданные» сравнивает не больше {} выбранных фото",
+  "Not compared, could not be read: {}": "Не сравнивались, не удалось прочитать: {}"
 }

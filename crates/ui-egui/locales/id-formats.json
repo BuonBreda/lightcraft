@@ -307,5 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Ke mana katalog Lightroom “{catalog}” diimpor?",
   "Merge into the open library “{library}” ({count} photo{})": "Gabungkan ke pustaka yang terbuka “{library}” ({count} foto{:.0})",
   "{} selected photos": "{} foto yang dipilih",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Menampilkan foto target: Semua metadata membandingkan paling banyak {} foto yang dipilih"
+  "Showing the target photo: All Metadata compares at most {} selected photos": "Menampilkan foto target: Semua metadata membandingkan paling banyak {} foto yang dipilih",
+  "Not compared, could not be read: {}": "Tidak dibandingkan, tidak dapat dibaca: {}"
 }

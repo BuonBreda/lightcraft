@@ -2430,5 +2430,6 @@
   "Dropped Files": "Släppta filer",
   "Finish Lightroom catalog import before adding photos": "Slutför importen av Lightroom-katalogen innan du lägger till foton",
   "Import dropped files without review": "Importera släppta filer utan granskning",
-  "Mixed": "Blandat"
+  "Mixed": "Blandat",
+  "Reading metadata": "Läser metadata"
 }

@@ -932,6 +932,21 @@ fn all_metadata_of_several_photos_marks_mixed_fields() {
     assert_eq!(one["photos"], 1);
     assert!(one["exif"].as_array().unwrap().iter().any(|e| e["name"] == "ISO Speed" && e["value"] == "1600"), "{one}");
     assert!(!one.to_string().contains("mixed"), "{one}");
+
+    // the worker's job: progress after each photo, and a cancel stops it
+    let job = s.all_metadata_job(&[PhotoId(ids[0]), PhotoId(ids[1])]).unwrap();
+    let seen = std::sync::Mutex::new(Vec::new());
+    job.run(&std::sync::atomic::AtomicBool::new(false), &|done, total| seen.lock().unwrap().push((done, total))).unwrap();
+    assert_eq!(*seen.lock().unwrap(), vec![(0, 2), (1, 2), (2, 2)]);
+    assert!(job.run(&std::sync::atomic::AtomicBool::new(true), &|_, _| {}).is_err(), "a cancelled read gives no rows");
+
+    // a file that went away is left out and named; alone it is an error, as before
+    std::fs::remove_file(&b).unwrap();
+    let r = s.execute("photo.allMetadata", &json!({"ids": ids})).unwrap();
+    assert_eq!(r["photos"], 1, "{r}");
+    assert_eq!(r["unreadable"][0]["fileName"], "b.jpg", "{r}");
+    assert!(r["exif"].as_array().unwrap().iter().any(|e| e["name"] == "ISO Speed" && e["value"] == "800"), "a.jpg's own rows: {r}");
+    assert!(s.execute("photo.allMetadata", &json!({"ids": [ids[1]]})).is_err());
     let _ = std::fs::remove_dir_all(&dir);
 }
 

@@ -307,5 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "¿Dónde debe ir el catálogo de Lightroom “{catalog}”?",
   "Merge into the open library “{library}” ({count} photo{})": "Combinar con la biblioteca abierta “{library}” ({count} foto{})",
   "{} selected photos": "{} fotos seleccionadas",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Se muestra la foto de destino: Todos los metadatos compara como máximo {} fotos seleccionadas"
+  "Showing the target photo: All Metadata compares at most {} selected photos": "Se muestra la foto de destino: Todos los metadatos compara como máximo {} fotos seleccionadas",
+  "Not compared, could not be read: {}": "No comparadas, no se pudieron leer: {}"
 }

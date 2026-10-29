@@ -307,5 +307,6 @@
   "Where should the Lightroom catalog “{catalog}” go?": "Minne Lightroom-luettelo ”{catalog}” tuodaan?",
   "Merge into the open library “{library}” ({count} photo{})": "Yhdistä avoimeen kirjastoon ”{library}” (kuvia: {count}{:.0})",
   "{} selected photos": "Valitut kuvat ({})",
-  "Showing the target photo: All Metadata compares at most {} selected photos": "Näytetään kohdekuva: Kaikki metatiedot vertaa enintään {} valittua kuvaa"
+  "Showing the target photo: All Metadata compares at most {} selected photos": "Näytetään kohdekuva: Kaikki metatiedot vertaa enintään {} valittua kuvaa",
+  "Not compared, could not be read: {}": "Ei vertailtu, ei voitu lukea: {}"
 }

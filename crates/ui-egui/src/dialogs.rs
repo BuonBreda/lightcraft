@@ -669,6 +669,18 @@ fn metadata_row(row: &serde_json::Value) -> MetadataRow {
     (name, (!mixed).then(|| row["value"].as_str().unwrap_or("").to_string()))
 }
 
+/// What All Metadata says about the selected photos whose files could not be read
+/// (`photo.allMetadata`'s `unreadable`): the first three by name, then how many more ("(+2)").
+fn unreadable_note(unreadable: &serde_json::Value) -> Option<String> {
+    let names: Vec<&str> = unreadable.as_array()?.iter().filter_map(|u| u["fileName"].as_str()).collect();
+    let (shown, more) = (names.get(..3).unwrap_or(&names), names.len().saturating_sub(3));
+    let mut list = shown.join(", ");
+    if more > 0 {
+        list.push_str(&format!(" (+{more})"));
+    }
+    (!names.is_empty()).then(|| crate::i18n::tr_format!("Not compared, could not be read: {}", list))
+}
+
 /// The body of the AllMetadata dialog.
 fn all_metadata_body(ui: &mut egui::Ui, t: &Tokens, dlg: &mut Dialog) {
     let Dialog::AllMetadata { title, rows, search } = dlg else { return };
@@ -676,6 +688,9 @@ fn all_metadata_body(ui: &mut egui::Ui, t: &Tokens, dlg: &mut Dialog) {
     if let Some(limit) = rows["limit"].as_u64() {
         // the selection is bigger than one comparison reads: the target photo stands in
         let note = crate::i18n::tr_format!("Showing the target photo: All Metadata compares at most {} selected photos", limit);
+        ui.add(egui::Label::new(egui::RichText::new(note).color(t.text_dim)).wrap());
+    }
+    if let Some(note) = unreadable_note(&rows["unreadable"]) {
         ui.add(egui::Label::new(egui::RichText::new(note).color(t.text_dim)).wrap());
     }
     let r = crate::widgets::named(
